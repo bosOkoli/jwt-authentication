@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/bosokoli/jwt_authentication/routes"
 	"github.com/gin-gonic/gin"
 )
 
