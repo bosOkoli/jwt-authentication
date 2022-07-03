@@ -25,12 +25,13 @@ func DBinstance() *mongo.Client {
 		log.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
+	defer cancel()
 	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(MongoDb)
 	fmt.Println("Connected to Mongo db")
 
 	return client
@@ -39,6 +40,6 @@ func DBinstance() *mongo.Client {
 var Client *mongo.Client = DBinstance()
 
 func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
-	var collection *mongo.Collection = client.Database("cluseter0").Collection(collectionName)
+	var collection *mongo.Collection = client.Database("Jwt-authentication").Collection(collectionName)
 	return collection
 }
