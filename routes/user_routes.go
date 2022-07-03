@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/bosokoli/jwt_authentication/controllers"
-	"github.com/bosokoli/jwt_authentication/routes/middleware"
+	"github.com/bosokoli/jwt_authentication/middleware"
 	"github.com/gin-gonic/gin"
 )
 

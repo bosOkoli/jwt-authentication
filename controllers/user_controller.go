@@ -43,7 +43,7 @@ func GetUsers() gin.HandlerFunc {
 
 		startIndex, _ = strconv.Atoi(c.Query("startIndex"))
 		matchStage := bson.D{{"$match", bson.D{}}}
-		groupStage := bson.D{{"$group", bson.D{{"_id", "null"}, {"total_count", bson.D{{"$sum", 1}}}}}}
+		groupStage := bson.D{{"$group", bson.D{{"_id", bson.D{{"_id", "null"}}}, {"total_count", bson.D{{"$sum", 1}}}, {"data", bson.D{{"$push", "$$ROOT"}}}}}}
 
 		projectStage := bson.D{
 			{"_id", 0},
@@ -55,10 +55,16 @@ func GetUsers() gin.HandlerFunc {
 
 		defer cancel()
 		if err != nil {
-			log.Fatal(err)
-			return
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occured while listing users"})
 		}
-		c.JSON(http.StatusOK, result)
+
+		var allUsers []bson.M
+
+		if err := result.All(ctx, &allUsers); err != nil {
+			log.Fatal(err)
+		}
+		c.JSON(http.StatusOK, allUsers[0])
+
 	}
 }
 
@@ -98,6 +104,7 @@ func Signup() gin.HandlerFunc {
 		}
 
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
+
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -157,6 +164,7 @@ func Login() gin.HandlerFunc {
 			return
 		}
 		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Email or password is incorrect"})
