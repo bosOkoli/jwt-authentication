@@ -8,10 +8,12 @@ import (
 
 func MatchUserTypeToUid(c *gin.Context, userId string) (err error) {
 	userType := c.GetString("user_type")
+
 	uid := c.GetString("uid")
+
 	err = nil
 
-	if userType == "USER" && uid != userId {
+	if userType != "ADMIN" && uid != userId {
 		err = errors.New("unauthorized to access this resource")
 		return err
 	}
@@ -19,10 +21,11 @@ func MatchUserTypeToUid(c *gin.Context, userId string) (err error) {
 	return err
 }
 
-func CheckUserType(c *gin.Context, userType string) (err error) {
-	userType = c.GetString("user_type")
+func CheckUserType(c *gin.Context, role string) (err error) {
+	userType := c.GetString("uid")
+
 	err = nil
-	if userType != "ROLE" {
+	if userType != role {
 		err = errors.New("unauthorized to access this resource")
 		return err
 	}

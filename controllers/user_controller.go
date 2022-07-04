@@ -45,17 +45,18 @@ func GetUsers() gin.HandlerFunc {
 		matchStage := bson.D{{"$match", bson.D{}}}
 		groupStage := bson.D{{"$group", bson.D{{"_id", bson.D{{"_id", "null"}}}, {"total_count", bson.D{{"$sum", 1}}}, {"data", bson.D{{"$push", "$$ROOT"}}}}}}
 
-		projectStage := bson.D{
+		projectStage := bson.D{{"$project", bson.D{
 			{"_id", 0},
 			{"total_count", 1},
-			{"user_items", bson.D{{"$slice", []interface{}{"data", startIndex, recordPerPage}}}},
-		}
+			{"user_items", bson.D{{"$slice", []interface{}{"$data", startIndex, recordPerPage}}}},
+		}}}
 		result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
 			matchStage, groupStage, projectStage})
 
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occured while listing users"})
+			return
 		}
 
 		var allUsers []bson.M
@@ -135,11 +136,11 @@ func Signup() gin.HandlerFunc {
 		user.ID = primitive.NewObjectID()
 		user.User_id = user.ID.Hex()
 
-		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, user.User_id, *user.User_type)
+		token, refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id)
 		user.Token = &token
 		user.Refresh_token = &refreshToken
 
-		resultInsertedNumber, insertErr := userCollection.InsertOne(ctx, user)
+		_, insertErr := userCollection.InsertOne(ctx, user)
 
 		if insertErr != nil {
 			msg := fmt.Sprintf("User was not created")
@@ -147,7 +148,7 @@ func Signup() gin.HandlerFunc {
 			return
 		}
 		defer cancel()
-		c.JSON(http.StatusOK, resultInsertedNumber)
+		c.JSON(http.StatusOK, user)
 
 	}
 }
